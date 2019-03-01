@@ -1,0 +1,11 @@
+bin/
+obj/
+.vs/
+*.user
+.env
+TestResults/
+*.trx
+*.filter_items.tmp
+*.format_output.tmp
+*.filter_items.tmp
+*.format_output.tmp
