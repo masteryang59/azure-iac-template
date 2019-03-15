@@ -1,0 +1,56 @@
+# Every finding we accept on purpose, with the reason. PSRule reports these as suppressed,
+# not passed, so they stay visible in the pipeline's results.
+
+---
+# Synopsis: Dev is a throwaway, single-instance, public-endpoint environment sized for cost. Prod meets these rules.
+apiVersion: github.com/microsoft/PSRule/v1
+kind: SuppressionGroup
+metadata:
+  name: DevCostAndAccessTradeoffs
+spec:
+  rule:
+    - Azure.AppService.MinPlan
+    - Azure.AppService.PlanInstanceCount
+    - Azure.AppService.AvailabilityZone
+    - Azure.KeyVault.Firewall
+    - Azure.KeyVault.PurgeProtect
+    - Azure.SQL.AllowAzureAccess
+    - Azure.SQL.DefenderCloud
+    - Azure.SQL.VAScan
+  if:
+    field: tags.environment
+    equals: dev
+
+---
+# Synopsis: A custom maintenance window has to be named per region (SQL_<Region>_DB_1/2); the template stays region-agnostic and uses the default window.
+apiVersion: github.com/microsoft/PSRule/v1
+kind: SuppressionGroup
+metadata:
+  name: SqlDefaultMaintenanceWindow
+spec:
+  rule:
+    - Azure.SQL.MaintenanceWindow
+  if:
+    field: tags.template
+    equals: azure-iac-template
+
+---
+# Synopsis: Log Analytics workspace replication doubles ingestion cost; operational logs here are not business data. Enable per workspace if needed.
+apiVersion: github.com/microsoft/PSRule/v1
+kind: SuppressionGroup
+metadata:
+  name: LogWorkspaceReplication
+spec:
+  rule:
+    - Azure.Log.Replication
+  if:
+    field: tags.template
+    equals: azure-iac-template
+encode_token:
+  enabled: true
+save_state:
+  enabled: true
+encode_token:
+  enabled: true
+save_state:
+  enabled: true
