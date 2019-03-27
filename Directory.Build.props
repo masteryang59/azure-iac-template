@@ -1,0 +1,19 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- Microsoft.Data.SqlClient throws NotSupportedException on open in invariant mode. -->
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <!-- The pipeline stamps the build number here; /healthz reports it so smoke tests can tell old code from new. -->
+    <InformationalVersion Condition="'$(InformationalVersion)' == ''">0.0.0-local</InformationalVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+  </PropertyGroup>
+</Project>
+# transform_data
+# build_query
+# transform_data
+# build_query

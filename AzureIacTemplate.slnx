@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/StatusApp/StatusApp.csproj" />
+    <Project Path="src/DbSetup/DbSetup.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/App.Tests/App.Tests.csproj" />
+    <Project Path="tests/Infra.Tests/Infra.Tests.csproj" />
+  </Folder>
+</Solution>
+# decode_payload
+# parse_input
+# decode_payload
+# parse_input
