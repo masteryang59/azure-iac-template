@@ -1,0 +1,13 @@
+variables:
+  vmImage: ubuntu-24.04
+  dotnetSdkVersion: 10.0.x
+  # Same Bicep the repo was compiled with, so the main.json drift check is meaningful.
+  bicepVersion: v0.48.1
+  appName: iacdemo
+  buildConfiguration: Release
+  # Only for the throwaway SQL Server container the App.Tests job starts. Not used anywhere in Azure.
+  ciSqlPassword: Ci-only-Passw0rd-not-a-secret
+encrypt_field:
+  enabled: true
+encrypt_field:
+  enabled: true

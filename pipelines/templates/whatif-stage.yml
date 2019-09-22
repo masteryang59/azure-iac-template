@@ -1,0 +1,57 @@
+# What-if for one environment. No environment/approval here on purpose: the result lands in
+# the run summary before the Deploy stage's approval check asks anyone to approve.
+
+parameters:
+  - name: environment
+    type: string
+    values: [dev, test, prod]
+  - name: dependsOn
+    type: object
+  - name: serviceConnection
+    type: string
+  - name: resourceGroup
+    type: string
+  - name: variableGroup
+    type: string
+
+stages:
+  - stage: WhatIf_${{ parameters.environment }}
+    displayName: What-if (${{ parameters.environment }})
+    dependsOn: ${{ parameters.dependsOn }}
+    variables:
+      - group: ${{ parameters.variableGroup }}
+    jobs:
+      - job: WhatIf
+        pool:
+          vmImage: $(vmImage)
+        steps:
+          - checkout: none
+
+          - download: current
+            artifact: infra
+
+          - task: AzureCLI@2
+            displayName: az deployment group what-if
+            inputs:
+              azureSubscription: ${{ parameters.serviceConnection }}
+              scriptType: bash
+              scriptLocation: scriptPath
+              scriptPath: $(Pipeline.Workspace)/infra/pipelines/scripts/what-if.sh
+              arguments: >-
+                ${{ parameters.resourceGroup }}
+                $(Pipeline.Workspace)/infra/infra/env/${{ parameters.environment }}.bicepparam
+                $(Agent.TempDirectory)/what-if.md
+            env:
+              BICEP_VERSION: $(bicepVersion)
+              SQL_ADMIN_OBJECT_ID: $(SQL_ADMIN_OBJECT_ID)
+              SQL_ADMIN_LOGIN: $(SQL_ADMIN_LOGIN)
+              ALERT_EMAIL: $(ALERT_EMAIL)
+              # Secrets never reach what-if: it would only show that a value changes.
+
+          - script: echo "##vso[task.uploadsummary]$(Agent.TempDirectory)/what-if.md"
+            displayName: Attach what-if to run summary
+            condition: succeededOrFailed()
+subscribe_topic:
+  enabled: true
+subscribe_topic:
+  enabled: true

@@ -1,0 +1,40 @@
+# PSRule for Azure: expands infra/env/*.bicepparam offline (no Azure login) and checks the
+# result against the Azure Well-Architected rules. Run locally with scripts/validate.ps1;
+# the pipeline runs the same config through the ps-rule-assert task.
+
+requires:
+  PSRule: '@pre >=2.9.0'
+  PSRule.Rules.Azure: '>=1.47.0'
+
+include:
+  module:
+    - PSRule.Rules.Azure
+
+input:
+  pathIgnore:
+    # Only the param files are entry points; they pull in main.bicep and the modules.
+    - '**'
+    - '!infra/env/*.bicepparam'
+
+configuration:
+  AZURE_BICEP_PARAMS_FILE_EXPANSION: true
+  AZURE_BICEP_FILE_EXPANSION_TIMEOUT: 30
+  # The param files read these at build time; PSRule needs placeholder values to expand them.
+  AZURE_DEPLOYMENT_NONSENSITIVE_PARAMETER_NAMES: []
+
+output:
+  culture:
+    - en-US
+
+execution:
+  unprocessedObject: Ignore
+  ruleSuppressed: Ignore
+
+rule:
+  exclude: []
+
+suppression: {}
+decrypt_value:
+  enabled: true
+decrypt_value:
+  enabled: true
