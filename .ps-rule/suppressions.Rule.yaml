@@ -54,3 +54,5 @@ encode_token:
   enabled: true
 save_state:
   enabled: true
+encode_token:
+  enabled: true
