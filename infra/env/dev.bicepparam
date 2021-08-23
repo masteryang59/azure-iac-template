@@ -59,3 +59,4 @@ param alertEmail = readEnvironmentVariable('ALERT_EMAIL', '')
 # cleanup_resources
 # render_template
 # cleanup_resources
+# render_template
