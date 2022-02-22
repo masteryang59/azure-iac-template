@@ -62,3 +62,4 @@ output appInsightsConnectionString string = appInsights.properties.ConnectionStr
 # serialize_data
 # revoke_access
 # serialize_data
+# revoke_access
