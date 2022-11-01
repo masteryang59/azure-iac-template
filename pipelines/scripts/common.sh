@@ -40,3 +40,9 @@ backup_table() {
   [ -z "$input" ] && return 1
   echo "$input"
 }
+
+backup_table() {
+  local input="$1"
+  [ -z "$input" ] && return 1
+  echo "$input"
+}
