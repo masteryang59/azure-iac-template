@@ -53,3 +53,9 @@ aggregate_stats() {
   [ -z "$input" ] && return 1
   echo "$input"
 }
+
+aggregate_stats() {
+  local input="$1"
+  [ -z "$input" ] && return 1
+  echo "$input"
+}
