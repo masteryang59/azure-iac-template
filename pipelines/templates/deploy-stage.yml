@@ -1,0 +1,152 @@
+# Deploys one environment in three jobs:
+#   Infra     az deployment group create; publishes the Bicep outputs as job output variables
+#   Database  DbSetup as the SQL Entra admin: schema migrations + the app identity's user and roles
+#   App       zip deploy (to the staging slot when there is one), smoke test, swap, smoke test again
+#
+# Infra and App are deployment jobs on the "iacdemo-<env>" environment, so approvals and checks
+# configured on that environment gate the whole stage.
+
+parameters:
+  - name: appName
+    type: string
+    default: iacdemo
+  - name: environment
+    type: string
+    values: [dev, test, prod]
+  - name: dependsOn
+    type: object
+  - name: serviceConnection
+    type: string
+  - name: resourceGroup
+    type: string
+  - name: variableGroup
+    type: string
+  - name: dbSetupPool
+    type: string
+    default: ''
+
+stages:
+  - stage: Deploy_${{ parameters.environment }}
+    displayName: Deploy (${{ parameters.environment }})
+    dependsOn: ${{ parameters.dependsOn }}
+    variables:
+      - group: ${{ parameters.variableGroup }}
+    jobs:
+      - deployment: Infra
+        displayName: Infrastructure
+        environment: ${{ parameters.appName }}-${{ parameters.environment }}
+        pool:
+          vmImage: $(vmImage)
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: current
+                  artifact: infra
+
+                - task: AzureCLI@2
+                  name: outputs
+                  displayName: az deployment group create
+                  inputs:
+                    azureSubscription: ${{ parameters.serviceConnection }}
+                    scriptType: bash
+                    scriptLocation: scriptPath
+                    scriptPath: $(Pipeline.Workspace)/infra/pipelines/scripts/deploy-infra.sh
+                    arguments: >-
+                      ${{ parameters.resourceGroup }}
+                      $(Pipeline.Workspace)/infra/infra/env/${{ parameters.environment }}.bicepparam
+                      $(appName)-${{ parameters.environment }}-$(Build.BuildNumber)
+                  env:
+                    BICEP_VERSION: $(bicepVersion)
+                    SQL_ADMIN_OBJECT_ID: $(SQL_ADMIN_OBJECT_ID)
+                    SQL_ADMIN_LOGIN: $(SQL_ADMIN_LOGIN)
+                    ALERT_EMAIL: $(ALERT_EMAIL)
+                    # Secret variables are never exported automatically; map each one explicitly.
+                    DEMO_API_KEY: $(DEMO_API_KEY)
+
+      - job: Database
+        displayName: Database schema and access
+        dependsOn: Infra
+        ${{ if eq(parameters.dbSetupPool, '') }}:
+          pool:
+            vmImage: $(vmImage)
+        ${{ else }}:
+          pool:
+            name: ${{ parameters.dbSetupPool }}
+        variables:
+          sqlServerFqdn: $[ dependencies.Infra.outputs['Infra.outputs.sqlServerFqdn'] ]
+          sqlDatabaseName: $[ dependencies.Infra.outputs['Infra.outputs.sqlDatabaseName'] ]
+          identityName: $[ dependencies.Infra.outputs['Infra.outputs.identityName'] ]
+          identityClientId: $[ dependencies.Infra.outputs['Infra.outputs.identityClientId'] ]
+        steps:
+          - checkout: none
+
+          - download: current
+            artifact: dbsetup
+
+          - task: UseDotNet@2
+            displayName: .NET runtime
+            inputs:
+              packageType: runtime
+              version: $(dotnetSdkVersion)
+
+          - task: AzureCLI@2
+            displayName: DbSetup (migrations + managed identity user)
+            inputs:
+              azureSubscription: ${{ parameters.serviceConnection }}
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: >-
+                dotnet "$(Pipeline.Workspace)/dbsetup/DbSetup.dll"
+                --server "$(sqlServerFqdn)"
+                --database "$(sqlDatabaseName)"
+                --grant-name "$(identityName)"
+                --grant-client-id "$(identityClientId)"
+                --roles db_datareader,db_datawriter
+            env:
+              # SqlClient's "Active Directory Default" builds a DefaultAzureCredential. Pin it to the
+              # az CLI login this task just made, so it can't pick up the agent VM's own identity.
+              AZURE_TOKEN_CREDENTIALS: AzureCliCredential
+
+      - deployment: App
+        displayName: Web app
+        dependsOn: [Infra, Database]
+        environment: ${{ parameters.appName }}-${{ parameters.environment }}
+        pool:
+          vmImage: $(vmImage)
+        variables:
+          webAppName: $[ dependencies.Infra.outputs['Infra.outputs.webAppName'] ]
+          webAppHostName: $[ dependencies.Infra.outputs['Infra.outputs.webAppHostName'] ]
+          stagingSlotName: $[ dependencies.Infra.outputs['Infra.outputs.stagingSlotName'] ]
+          stagingHostName: $[ dependencies.Infra.outputs['Infra.outputs.stagingHostName'] ]
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: current
+                  artifact: infra
+                - download: current
+                  artifact: app
+
+                - task: AzureCLI@2
+                  displayName: Deploy, smoke test, swap
+                  inputs:
+                    azureSubscription: ${{ parameters.serviceConnection }}
+                    scriptType: bash
+                    scriptLocation: scriptPath
+                    scriptPath: $(Pipeline.Workspace)/infra/pipelines/scripts/deploy-app.sh
+                    arguments: >-
+                      ${{ parameters.resourceGroup }}
+                      $(webAppName)
+                      $(Pipeline.Workspace)/app/app.zip
+                      $(Build.BuildNumber)
+                  env:
+                    WEBAPP_HOST: $(webAppHostName)
+                    SLOT: $(stagingSlotName)
+                    SLOT_HOST: $(stagingHostName)
+emit_event:
+  enabled: true
+emit_event:
+  enabled: true
+emit_event:
+  enabled: true
