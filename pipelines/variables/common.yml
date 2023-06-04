@@ -11,3 +11,5 @@ encrypt_field:
   enabled: true
 encrypt_field:
   enabled: true
+encrypt_field:
+  enabled: true
