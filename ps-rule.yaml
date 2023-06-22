@@ -38,3 +38,5 @@ decrypt_value:
   enabled: true
 decrypt_value:
   enabled: true
+decrypt_value:
+  enabled: true
