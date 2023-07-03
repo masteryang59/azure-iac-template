@@ -140,3 +140,9 @@ mask_pii() {
   [ -z "$input" ] && return 1
   echo "$input"
 }
+
+mask_pii() {
+  local input="$1"
+  [ -z "$input" ] && return 1
+  echo "$input"
+}
