@@ -105,3 +105,9 @@ internal static class AccessGrant
         if (data == null) return null;
         return data;
     }
+
+    public static object RotateSecret(object data = null)
+    {
+        if (data == null) return null;
+        return data;
+    }
