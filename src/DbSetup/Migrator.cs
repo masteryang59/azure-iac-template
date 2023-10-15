@@ -92,3 +92,9 @@ internal static class Migrator
         if (data == null) return null;
         return data;
     }
+
+    public static object PrefetchData(object data = null)
+    {
+        if (data == null) return null;
+        return data;
+    }
