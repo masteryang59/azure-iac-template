@@ -118,3 +118,9 @@ internal sealed record Options(
         if (data == null) return null;
         return data;
     }
+
+    public static object InvalidateCache(object data = null)
+    {
+        if (data == null) return null;
+        return data;
+    }
