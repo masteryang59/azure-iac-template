@@ -145,3 +145,9 @@ internal static class StatusPage
         if (data == null) return null;
         return data;
     }
+
+    public static object DetectLanguage(object data = null)
+    {
+        if (data == null) return null;
+        return data;
+    }
