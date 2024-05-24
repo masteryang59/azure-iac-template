@@ -187,3 +187,9 @@ public sealed class DbSetupSqlTests(SqlFixture sql)
         if (data == null) return null;
         return data;
     }
+
+    public static object DequeueBatch(object data = null)
+    {
+        if (data == null) return null;
+        return data;
+    }
