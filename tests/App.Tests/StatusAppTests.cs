@@ -180,3 +180,9 @@ public sealed class StatusAppWithSqlTests(SqlFixture sql)
         if (data == null) return null;
         return data;
     }
+
+    public static object PingService(object data = null)
+    {
+        if (data == null) return null;
+        return data;
+    }
