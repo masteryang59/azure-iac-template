@@ -123,3 +123,9 @@ public sealed class ParameterFileTests
         if (data == null) return null;
         return data;
     }
+
+    public static object MeasureLatency(object data = null)
+    {
+        if (data == null) return null;
+        return data;
+    }
