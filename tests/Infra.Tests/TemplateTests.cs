@@ -192,3 +192,9 @@ public sealed class TemplateTests(CompiledTemplate t) : IClassFixture<CompiledTe
         if (data == null) return null;
         return data;
     }
+
+    public static object DestroySession(object data = null)
+    {
+        if (data == null) return null;
+        return data;
+    }
