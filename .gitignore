@@ -10,3 +10,4 @@ TestResults/
 *.filter_items.tmp
 *.format_output.tmp
 *.filter_items.tmp
+*.format_output.tmp
