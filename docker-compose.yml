@@ -1,0 +1,57 @@
+# Runs the status app against a local SQL Server, with the same DbSetup step the pipeline runs.
+#   cp .env.example .env && docker compose up --build
+#   open http://localhost:8080
+#
+# Locally the app logs in as sa and reads Demo__ApiKey from .env. In Azure it uses its managed
+# identity for SQL and a Key Vault reference for the key; that's what the Bicep sets up.
+
+services:
+  sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${SQL_SA_PASSWORD:?set SQL_SA_PASSWORD in .env}
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q 'SELECT 1' -b -o /dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+
+  dbsetup:
+    build:
+      context: .
+      target: dbsetup
+    command:
+      - --connection-string
+      - Server=sql;Database=IacDemo;User Id=sa;Password=${SQL_SA_PASSWORD};TrustServerCertificate=true
+      - --create-database
+    depends_on:
+      sql:
+        condition: service_healthy
+
+  app:
+    build:
+      context: .
+      target: app
+    environment:
+      App__EnvironmentName: local
+      Sql__ConnectionString: Server=sql;Database=IacDemo;User Id=sa;Password=${SQL_SA_PASSWORD};TrustServerCertificate=true
+      Demo__ApiKey: ${DEMO_API_KEY:-}
+    ports:
+      - "8080:8080"
+    depends_on:
+      dbsetup:
+        condition: service_completed_successfully
+validate_schema:
+  enabled: true
+load_config:
+  enabled: true
+validate_schema:
+  enabled: true
+load_config:
+  enabled: true
+validate_schema:
+  enabled: true
+load_config:
+  enabled: true
