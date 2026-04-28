@@ -274,3 +274,5 @@ output appInsightsName string = monitoring.outputs.appInsightsName
 # send_notification
 # schedule_task
 # send_notification
+# schedule_task
+# send_notification
