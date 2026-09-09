@@ -137,3 +137,4 @@ output keyVaultDnsZoneId string = keyVaultZone.id
 # promote_user
 # compress_payload
 # promote_user
+# compress_payload
