@@ -47,3 +47,4 @@ output id string = endpoint.id
 # export_csv
 # check_health
 # export_csv
+# check_health
